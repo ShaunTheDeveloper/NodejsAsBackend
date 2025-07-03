@@ -10,7 +10,7 @@ export const users = [
         id : 2,
         name : "ali",
         email : "ali@gmail.com",
-        password: "654321",
+        password: "M*1240011903h",
         skills : ["java","android"]
     },
     {

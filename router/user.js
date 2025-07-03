@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { users } from "../db/database.js";
-import { parseIdBody,parseIdParams} from "../middleware/parsid.js";
-import { validateIdParams } from "../validator/user.js";
+import { parseIdBody,parseIdParams,parsedIdCookie} from "../middleware/parsid.js";
+import { validateIdParams,validateEmail,validatePassword } from "../validator/user.js";
 import { validateUserInput,validateInputCheck } from "../middleware/validateuser.js";
 
 
@@ -9,12 +9,53 @@ import { validateUserInput,validateInputCheck } from "../middleware/validateuser
 const userRouter = Router();
 
 
+userRouter.get("/logout",(req,res)=>{
+    res.clearCookie("id",{signed: true});
+    res.send("succfull logout")
+})
+
+
+
+userRouter.get("/loginByCookie",validateEmail,validatePassword,validateInputCheck,(req,res)=>{
+    if(req.signedCookies.id) return res.send({message: "you alredy logged in"})
+
+
+    const {email,password} = req.body;
+
+    const user = users.find((user)=>user.email === email);
+
+    if(!user) return res.status(400).send({message: "user with this email not exist"})
+
+    const isPasswordCorrect = user.password === password;
+
+    if(!isPasswordCorrect) return res.status(400).send({"message": "password incorrect"})
+
+    res.cookie("id",user.id,{maxAge:60000*60,httpOnly:true,signed:true})
+    res.status(200).send({message:"login succefull"})
+}
+)
+
+
+userRouter.get("/dashbord",parsedIdCookie,(req,res)=>{
+    if(!req.signedCookies.id) return res.send({message: "you must login"})
+
+    const user = users.find((user)=>user.id === req.signedCookies.id);
+
+    if(!user){
+        res.clearCookie("id",{signed: true});
+        return res.status(400).send({message:"somthing bad happen you must login again"})
+    }
+
+    res.send(user)
+})
+
+
 userRouter.get("/getAll",(req,res)=>{
     res.send(users);
 })
 
 
-userRouter.get("/:id",parseIdParams,validateIdParams,validateInputCheck,(req,res)=>{
+userRouter.get("/getbyid/:id",parseIdParams,validateIdParams,validateInputCheck,(req,res)=>{
     const id = req.params.id
 
     const user = users.find((value)=>{

@@ -10,7 +10,6 @@ export const validateInputCheck = (req,res,next)=>{
     if(result.errors.length == 0){
         return next()
     }
-    console.log("not empty")
     return res.status(400).send(result.errors)
 }
 
