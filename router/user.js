@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { users } from "../db/database.js";
 import { parseIdBody,parseIdParams} from "../middleware/parsid.js";
+import { validateIdParams } from "../validator/user.js";
+import { validateUserInput,validateInputCheck } from "../middleware/validateuser.js";
 
 
 
@@ -12,7 +14,7 @@ userRouter.get("/getAll",(req,res)=>{
 })
 
 
-userRouter.get("/:id",parseIdParams,(req,res)=>{
+userRouter.get("/:id",parseIdParams,validateIdParams,validateInputCheck,(req,res)=>{
     const id = req.params.id
 
     const user = users.find((value)=>{
@@ -29,7 +31,7 @@ userRouter.get("/:id",parseIdParams,(req,res)=>{
 
 
 
-userRouter.post("/",parseIdBody,(req,res)=>{
+userRouter.post("/",parseIdBody,validateUserInput,validateInputCheck,(req,res)=>{
     const body = req.body;
     const {id} = body;
 
