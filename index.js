@@ -3,6 +3,8 @@ import {fileURLToPath} from "url"
 import path from "path"
 import userRouter from "./router/user.js";
 import cookieParser from "cookie-parser";
+import session from "express-session";
+import { Session } from "inspector/promises";
 
 
 const PORT = process.env.PORT || 3000
@@ -16,6 +18,17 @@ app.use(express.static(path.join(__dirname,"static")));
 app.use(express.json());
 app.use(express.urlencoded({extended:false}))
 app.use(cookieParser("secret"))
+
+
+app.use(session({
+    resave : false,
+    saveUninitialized : false,
+    secret : "secret",
+    cookie : {
+        maxAge : 60000*60,
+        httpOnly : true
+    }
+}))
 
 
 app.use("/users",userRouter);

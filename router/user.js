@@ -10,14 +10,17 @@ const userRouter = Router();
 
 
 userRouter.get("/logout",(req,res)=>{
-    res.clearCookie("id",{signed: true});
-    res.send("succfull logout")
+    req.session.destroy(err=>{
+        if (err) return res.status(400).send(`something bad happened ${err.message}`)
+        res.clearCookie("connect.id");
+        res.status(200).send({message:"you logout succefully"})
+    })
 })
 
 
 
-userRouter.get("/loginByCookie",validateEmail,validatePassword,validateInputCheck,(req,res)=>{
-    if(req.signedCookies.id) return res.send({message: "you alredy logged in"})
+userRouter.get("/login",validateEmail,validatePassword,validateInputCheck,(req,res)=>{
+    if(req.session.user) return res.send({message: "you alredy logged in"})
 
 
     const {email,password} = req.body;
@@ -30,22 +33,22 @@ userRouter.get("/loginByCookie",validateEmail,validatePassword,validateInputChec
 
     if(!isPasswordCorrect) return res.status(400).send({"message": "password incorrect"})
 
-    res.cookie("id",user.id,{maxAge:60000*60,httpOnly:true,signed:true})
-    res.status(200).send({message:"login succefull"})
+    req.session.user = user;
+    res.status(200).send({message: "login succefully"})
 }
 )
 
 
 userRouter.get("/dashbord",parsedIdCookie,(req,res)=>{
-    if(!req.signedCookies.id) return res.send({message: "you must login"})
+    if(!req.session.user) return res.send({message: "you must login"})
 
-    const user = users.find((user)=>user.id === req.signedCookies.id);
+    const user = users.find((user)=>user.id === req.session.user.id);
 
     if(!user){
         res.clearCookie("id",{signed: true});
         return res.status(400).send({message:"somthing bad happen you must login again"})
     }
-
+    console.log(req.sessionStore)
     res.send(user)
 })
 
