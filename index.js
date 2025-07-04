@@ -4,7 +4,9 @@ import path from "path"
 import userRouter from "./router/user.js";
 import cookieParser from "cookie-parser";
 import session from "express-session";
-import { Session } from "inspector/promises";
+import passport from "passport";
+import "./auth/passport-local.js"
+
 
 
 const PORT = process.env.PORT || 3000
@@ -31,16 +33,39 @@ app.use(session({
 }))
 
 
+app.use(passport.initialize());
+app.use(passport.session())
+
+
+
+
+
 app.use("/users",userRouter);
 
+app.post("/auth",passport.authenticate("local"),(req,res)=>{
+    res.sendStatus(200)
+})
 
 
+app.get("/check/auth",(req,res)=>{
+    console.log(req.user)
+    console.log(req.session)
+    res.sendStatus(200)
+})
 
-
+app.get("/auth/logout",(req,res)=>{
+    if(!req.user) return res.sendStatus(401)
+    req.logout((err)=>{
+        if(err) return res.sendStatus(400);
+        res.sendStatus(200)
+    })
+})
 
 app.listen(PORT,(err)=>{
     console.log(`server started on PORT : ${PORT}`)
 })
+
+
 
 
 
