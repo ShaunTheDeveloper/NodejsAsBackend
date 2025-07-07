@@ -1,8 +1,13 @@
 import { Router } from "express";
-import { users } from "../db/database.js";
 import { parseIdBody,parseIdParams,parsedIdCookie} from "../middleware/parsid.js";
 import { validateIdParams,validateEmail,validatePassword } from "../validator/user.js";
 import { validateUserInput,validateInputCheck } from "../middleware/validateuser.js";
+import bcrypt from "bcrypt"
+import passport from "passport";
+import { User } from "../db/users.js";
+import '../auth/passport-local.js'
+const salt = 10
+
 
 
 
@@ -10,86 +15,54 @@ const userRouter = Router();
 
 
 userRouter.get("/logout",(req,res)=>{
-    req.session.destroy(err=>{
-        if (err) return res.status(400).send(`something bad happened ${err.message}`)
-        res.clearCookie("connect.id");
-        res.status(200).send({message:"you logout succefully"})
+    req.logOut((err)=>{
+        if(err) res.status(400).send({location:"log out error",message:err.message})
+        res.status(200).send({message:"successfully logout"})
     })
 })
 
 
 
-userRouter.get("/login",validateEmail,validatePassword,validateInputCheck,(req,res)=>{
-    if(req.session.user) return res.send({message: "you alredy logged in"})
-
-
-    const {email,password} = req.body;
-
-    const user = users.find((user)=>user.email === email);
-
-    if(!user) return res.status(400).send({message: "user with this email not exist"})
-
-    const isPasswordCorrect = user.password === password;
-
-    if(!isPasswordCorrect) return res.status(400).send({"message": "password incorrect"})
-
-    req.session.user = user;
-    res.status(200).send({message: "login succefully"})
+userRouter.get("/login",validateEmail,validatePassword,validateInputCheck,passport.authenticate("local"),(req,res)=>{
+    if(req.user){
+        res.status(200).send({message:"you login successfully",data : req.user})
+    }else{
+        res.status(400).send({location:"login failed"})
+    }
 }
 )
 
 
 userRouter.get("/dashbord",parsedIdCookie,(req,res)=>{
-    if(!req.session.user) return res.send({message: "you must login"})
+    if(!req.user) return res.send({message: "you must login"})
 
-    const user = users.find((user)=>user.id === req.session.user.id);
+    const user = req.user;
+    res.status(200).send({message:"your dashbord",data:user})
+})
 
-    if(!user){
-        res.clearCookie("id",{signed: true});
-        return res.status(400).send({message:"somthing bad happen you must login again"})
+
+userRouter.get("/getAll",async(req,res)=>{
+    try{
+        const data = await User.find();
+        res.send(data)
+    }catch(err){
+        res.status(400).send({location:"in get All",message:err.message})
     }
-    console.log(req.sessionStore)
-    res.send(user)
-})
-
-
-userRouter.get("/getAll",(req,res)=>{
-    res.send(users);
-})
-
-
-userRouter.get("/getbyid/:id",parseIdParams,validateIdParams,validateInputCheck,(req,res)=>{
-    const id = req.params.id
-
-    const user = users.find((value)=>{
-        return value.id === id
     })
 
-    if(user){
-        res.status(200).send(user);
-        return;
-    }else{
-        res.status(404).send({message: "user not founded"})
-    }
-})
 
 
-
-userRouter.post("/",parseIdBody,validateUserInput,validateInputCheck,(req,res)=>{
+userRouter.post("/",parseIdBody,validateUserInput,validateInputCheck,async (req,res)=>{
     const body = req.body;
-    const {id} = body;
-
-    const user = users.find((value)=>{
-        return value.id === id
-    })
-
-    if(user){
-        res.status(400).send({message:"user with this id exist"})
-        return
+    try{
+        const genSalt = bcrypt.genSaltSync(10);
+        body.password = bcrypt.hashSync(body.password,genSalt);
+        const user = new User(body);
+        const savedUser = await user.save();
+        res.status(200).send(savedUser);
+    }catch(err){
+        res.status(400).send(err)
     }
-
-    users.push(body);
-    res.status(200).send(body)
 })
 
 

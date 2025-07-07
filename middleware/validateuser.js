@@ -15,4 +15,4 @@ export const validateInputCheck = (req,res,next)=>{
 
 
 
-export const validateUserInput = [validateIdBody,validateEmail,validateName,validatePassword];
+export const validateUserInput = [validateEmail,validatePassword];

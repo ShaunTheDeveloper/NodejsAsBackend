@@ -1,16 +1,17 @@
 import passport from "passport";
 import { Strategy } from "passport-local";
-import { users } from "../db/database.js";
+import { User } from "../db/users.js";
+import bcrypt from "bcrypt"
+
 
 passport.serializeUser((user,done)=>{
-    console.log(user)
     done(null , user.id)
 })
 
-passport.deserializeUser((id,done)=>{
-    console.log(id)
+passport.deserializeUser(async(id,done)=>{
     try{
-        const finduser = users.find((user)=>user.id === id);
+        const finduser = await User.findById(id)
+        console.log(finduser)
         if(!finduser) throw Error("somthing bad happend you must login again")
         done(null,finduser)
     }catch(err){
@@ -21,13 +22,11 @@ passport.deserializeUser((id,done)=>{
 
 
 export default passport.use(
-    new Strategy({usernameField : "email"},(email,password,done)=>{
+    new Strategy({usernameField : "email"},async(email,password,done)=>{
         try{
-            console.log(email + "    "+ password)
-            const finduser = users.find((user)=>user.email === email);
-            console.log(finduser.password)
+            const finduser = await User.findOne({email})
             if(!finduser) throw Error("user not found in database")
-            if(finduser.password !== password) throw Error("incorrect password")
+            if(!bcrypt.compareSync(password,finduser.password)) throw Error("incorrect password")
             
             done(null,finduser);
 

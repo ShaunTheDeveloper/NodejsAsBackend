@@ -6,11 +6,15 @@ import cookieParser from "cookie-parser";
 import session from "express-session";
 import passport from "passport";
 import "./auth/passport-local.js"
+import mongoose from "mongoose";
 
 
 
 const PORT = process.env.PORT || 3000
 const app = express();
+mongoose.connect("mongodb://localhost:27017/users")
+.then(()=>{console.log("connected to db succfully")})
+.catch(err=>console.log(err))
 
 
 const __filename = fileURLToPath(import.meta.url);
