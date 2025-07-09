@@ -7,6 +7,7 @@ import session from "express-session";
 import passport from "passport";
 import "./auth/passport-local.js"
 import mongoose from "mongoose";
+import MongoStore from "connect-mongo";
 
 
 
@@ -33,7 +34,10 @@ app.use(session({
     cookie : {
         maxAge : 60000*60,
         httpOnly : true
-    }
+    },
+    store : MongoStore.create({
+        client : mongoose.connection.getClient()
+    })
 }))
 
 
