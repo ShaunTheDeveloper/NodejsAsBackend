@@ -5,9 +5,13 @@ import userRouter from "./router/user.js";
 import cookieParser from "cookie-parser";
 import session from "express-session";
 import passport from "passport";
-import "./auth/passport-local.js"
+
 import mongoose from "mongoose";
 import MongoStore from "connect-mongo";
+
+import "./auth/passport-google.js"
+import "./auth/passport-local.js"
+import "./auth/index.js"
 
 
 
@@ -69,9 +73,24 @@ app.get("/auth/logout",(req,res)=>{
     })
 })
 
+
+
+app.get("/auth/google",passport.authenticate("google",{scope : ["profile","email"]}))
+
+
+app.get("/auth/google/callback",passport.authenticate("google"),(req,res)=>{
+    console.log("success in login with google");
+    console.log(req.session)
+    console.log(req.user)
+    res.sendStatus(200)
+})
+
 app.listen(PORT,(err)=>{
     console.log(`server started on PORT : ${PORT}`)
 })
+
+
+
 
 
 

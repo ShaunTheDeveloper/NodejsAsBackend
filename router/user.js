@@ -4,7 +4,7 @@ import { validateIdParams,validateEmail,validatePassword } from "../validator/us
 import { validateUserInput,validateInputCheck } from "../middleware/validateuser.js";
 import bcrypt from "bcrypt"
 import passport from "passport";
-import { User } from "../db/users.js";
+import { UserLocal } from "../db/user_local.js";
 import '../auth/passport-local.js'
 const salt = 10
 
@@ -43,7 +43,7 @@ userRouter.get("/dashbord",parsedIdCookie,(req,res)=>{
 
 userRouter.get("/getAll",async(req,res)=>{
     try{
-        const data = await User.find();
+        const data = await UserLocal.find();
         res.send(data)
     }catch(err){
         res.status(400).send({location:"in get All",message:err.message})

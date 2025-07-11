@@ -15,4 +15,4 @@ const shcemaUser = mongoose.Schema({
 })
 
 
-export const User = mongoose.model("User",shcemaUser);
+export const UserLocal = mongoose.model("UserLocal",shcemaUser);
