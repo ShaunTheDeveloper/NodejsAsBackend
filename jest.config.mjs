@@ -1,6 +1,6 @@
 export default {
-    testEnvironment : "node",
+    testEnvironment : 'node',
     transform : {},
-    clearMocks : true,
-    verbose : true
+    verbose: true,
+    clearMocks: true
 }

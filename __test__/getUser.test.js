@@ -1,7 +1,7 @@
 
 import { getUserByIdHandler } from "../handlers/user.js";
 import {jest} from "@jest/globals"
-import { mockUsers } from "../utils/constant/mock_user";
+import { mockUsers } from "../utils/constant/mock_user.js";
 
 
 const mock_response = {
